@@ -104,4 +104,4 @@ def process_image():
     return jsonify({'image': img_base64, 'message': message})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=8087)
