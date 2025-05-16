@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 min-h-screen flex flex-col items-center">
+    <!-- Hero Section -->
+    <header class="w-full bg-blue-600 text-white py-6">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">Brain Tumor Detection</h1>
+            <p class="text-lg md:text-xl opacity-80">Advanced AI-powered MRI analysis for accurate tumor detection</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
+            <div class="flex flex-col items-center">
+                <div class="mb-6 w-full">
+                    <label for="imageUpload" class="block text-sm font-medium text-gray-700 mb-2">Upload MRI Image</label>
+                    <input type="file" id="imageUpload" accept="image/*" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 mb-6">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="option" value="detect" class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
+                        <span class="text-gray-700 font-medium">Detect Tumor</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="option" value="visualize" class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                        <span class="text-gray-700 font-medium">View Tumor Region</span>
+                    </label>
+                </div>
+                <button id="processBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 flex items-center justify-center disabled:opacity-50" disabled>
+                    <span id="btnText">Process Image</span>
+                    <svg id="spinner" class="animate-spin h-5 w-5 ml-2 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="result" class="mt-8">
+                <div id="imageContainer" class="hidden flex flex-col items-center">
+                    <img id="outputImage" class="max-w-full md:max-w-lg h-auto rounded-lg shadow-md fade-in" alt="Processed Image">
+                    <p id="resultText" class="text-center mt-4 text-lg font-semibold text-gray-800"></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-gray-800 text-white py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Brain Tumor Detection. Powered by AI Under in Your Work Innovations.</p>
+        </div>
+    </footer>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const processBtn = document.getElementById('processBtn');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+        const outputImage = document.getElementById('outputImage');
+        const resultText = document.getElementById('resultText');
+        const imageContainer = document.getElementById('imageContainer');
+
+        imageUpload.addEventListener('change', () => {
+            processBtn.disabled = !imageUpload.files.length;
+        });
+
+        processBtn.addEventListener('click', async () => {
+            const file = imageUpload.files[0];
+            if (!file) return;
+
+            const option = document.querySelector('input[name="option"]:checked').value;
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('option', option);
+
+            processBtn.disabled = true;
+            btnText.textContent = 'Processing';
+            spinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.error) {
+                    resultText.textContent = result.error;
+                    resultText.classList.add('text-red-500');
+                } else {
+                    outputImage.src = `data:image/jpeg;base64,${result.image}`;
+                    resultText.textContent = result.message;
+                    resultText.classList.remove('text-red-500');
+                    imageContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                resultText.textContent = 'Error processing image';
+                resultText.classList.add('text-red-500');
+            } finally {
+                processBtn.disabled = false;
+                btnText.textContent = 'Process Image';
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
